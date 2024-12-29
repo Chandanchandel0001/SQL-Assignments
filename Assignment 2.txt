@@ -1,0 +1,84 @@
+------------------ Assignment 2---------------------
+by,
+Chandan Kumar Chandel
+----------------------------------------------------
+Using Car Dataset
+------------------------------------------------------
+
+-- 1. Countries and their continents. Order the results by continent names.
+select cou.countryname, c.continent from Countries cou left join Continents c on cou.continent = c.contid order by 2 ;
+
+
+-- 2. Number of countries within each continent.
+select c.continent, count(cou.countryname) from Countries cou left join Continents c on cou.continent = c.contid group by c.continent;
+
+
+-- 3. countries with no car makers?
+select cou.countryname, cm.maker from Countries cou left join Car_Makers cm on cou.countryid =cm.country where cm.maker is null ;
+
+
+-- 4  List of Car makers from Japan.
+select distinct  cm.maker from Car_Makers cm join Countries cou on cm.country = cou.countryid where cou.countryname ='japan';
+
+
+-- 5. List of Car makers from France and USA.
+select cm.maker from Car_Makers cm join Countries cou on cm.country = cou.countryid where cou.countryname IN ('france','usa');
+
+
+-- 6. Country and continent of Volvo car maker.
+select cou.countryname,c.continent,cm.maker from Car_Makers cm join Countries cou on cm.country = cou.countryid left join Continents c on cou.continent =c.contid
+    where maker = 'volvo';
+
+
+ -- 7. Car models from 'Ford Motor Company'
+select md.model from Model_Details md left join Car_Makers cm on md.modelid = cm.id where cm.fullname = 'Ford Motor Company';
+
+
+-- 8. How many car models are made by Germany?
+select cou.countryname,count(md.model) from Model_Details md left join Car_Makers cm on md.modelid = cm.id left join Countries cou on cm.country =cou.countryid where cou.countryname ='germany' group by cou.countryname; 
+
+
+-- 9. Car models made by Japan along with maker details.
+select  md.model from Model_Details md left join Car_Makers cm on md.modelid = cm.id left join Countries c on cm.country = c.countryid where c.countryname = 'japan';
+
+
+-- 11. In which year most cars were made?
+select year , count(*)from Car_Details group by year order by 1,2 desc FETCH FIRST 1 ROWS ONLY;
+
+
+
+--12.  Which year had less cars made?
+select year , count(*)from Car_Details group by year order by 2 asc FETCH FIRST 1 ROWS ONLY;
+
+
+
+-- 13. Min, Max and Average of below attributes around the year(s): a. Mpg b. Cylinders c. Edispl d. Horsepower e. Weight f. Acel
+
+
+select year,
+      min(mpg), max(mpg), avg(mpg),
+min(cylinders), max(cylinders), avg(cylinders),
+min(edispl), max(edispl), avg(edispl), 
+min(horsepower), max(horsepower),avg(horsepower),
+min(weight), max(weight), avg(weight), 
+    min(accel), max(accel), avg(accel) 
+ from car_details 
+ group by year;
+
+
+-- 14. Please carry out a small statistical analysis around (1) Horsepower (2) Weight (3) Accel. Try calculating the mean, median and standard deviation. Use SQL queries to extract these measures. What do these measures convey about horsepower and weight of the cars data? Share SQLs and few bullets on your understanding on the values captured for mean, median and standard deviation.
+
+
+select avg(horsepower), median(horsepower), stddev(horsepower), 
+avg(weight), median(weight), stddev(weight), 
+avg(accel), median(accel), stddev(accel) 
+from car_details;
+
+Horsepower:
+The average horsepower (105.08) is higher than the middle value (95), showing that most cars have lower horsepower, but a few very powerful ones increase the average. The large variation (38.77) indicates significant differences in car horsepower.
+
+Weight:
+The average weight (2979.41) is higher than the middle value (2822.5), meaning a few heavy cars raise the overall average. The wide variation (847.00) shows a big range, with both light and heavy cars in the data.
+
+
+
