@@ -1,0 +1,122 @@
+-----------------------------------  ASSIGNMENT 3 -----------------------------------
+
+By.  Chandan Kumar Chandel
+
+
+-- 1. Top 3 customers based on the amount spent.
+
+select * from ( 
+select
+    c.CUSTOMER_ID,
+    c.CUST_FIRST_NAME,
+    c.CUST_LAST_NAME,
+    SUM(oit.UNIT_PRICE * oit.QUANTITY) AS total_spents,
+    dense_rank () OVER (ORDER BY SUM(oit.UNIT_PRICE * oit.QUANTITY) DESC) as rnk
+FROM demo_customers c
+JOIN demo_orders o ON c.CUSTOMER_ID = o.CUSTOMER_ID
+JOIN demo_order_items oit ON o.ORDER_ID = oit.ORDER_ID
+GROUP BY c.CUSTOMER_ID, c.CUST_FIRST_NAME, c.CUST_LAST_NAME
+    )
+where rnk <= 3;
+
+
+-- 2. Top 3 customers based on the number of orders.
+
+select * from ( select c.customer_id,c.cust_first_name,c.cust_last_name,count(o.order_id) as Total_order_count, dense_rank () over (order by count(o.order_id) desc)
+    as rnk from "DEMO_CUSTOMERS" c join  "DEMO_ORDERS" o on c.customer_id =o.customer_id
+    group by c.customer_id,c.cust_first_name,c.cust_last_name ) ranked_customer where rnk <= 3;
+
+
+
+-- -- 3. Top 3 products based on quantity sold.
+ (SImple Way)
+SELECT 
+    p.product_id,
+    p.product_name, 
+    SUM(oit.quantity) AS total_quantity_sold
+FROM "DEMO_PRODUCTS" p
+INNER JOIN "DEMO_ORDER_ITEMS" oit 
+ON p.product_id = oit.product_id 
+GROUP BY p.product_id, p.product_name 
+ORDER BY total_quantity_sold DESC fetch first 3 rows only;
+
+using Analytical function >>>>>>>>>>>>>
+
+select * from (
+    select p.product_id, p.product_name, sum(oit.quantity) as total_quantity_sold, dense_rank () over (order by sum(oit.quantity) desc) as product_rnk from "DEMO_PRODUCTS" p
+    join "DEMO_ORDER_ITEMS" oit on p.product_id = oit.product_id group by  p.product_id,
+   p.product_name)  where product_rnk <= 3;
+
+
+-- 4. Write a query to capture the customer's last name, product names (he bought) and total quantity of each of them.
+
+ select c.cust_last_name,p.product_name, sum(oit.quantity) as total_quantity from "DEMO_CUSTOMERS" c join "DEMO_ORDERS"  o on c.customer_id = o.customer_id
+  join demo_order_items oit on o.order_id = oit.order_id
+  join demo_products p on oit.product_id = p.product_id group by  c.cust_last_name,p.product_name;
+
+
+-- 6. Which year had most orders?
+
+SELECT 
+    EXTRACT(YEAR FROM o.order_timestamp) AS order_year, 
+    COUNT(o.order_id) AS total_orders
+FROM 
+    "DEMO_ORDERS" o
+GROUP BY 
+    EXTRACT(YEAR FROM o.order_timestamp)
+ORDER BY 
+    total_orders DESC
+FETCH FIRST 1 ROW ONLY;
+
+
+-- 8. Which product category was most sold?
+select p.category, sum(oit.quantity) as most_sold from "DEMO_PRODUCTS" p join  "DEMO_ORDER_ITEMS" oit  on p.product_id = oit.product_id group by  p.category
+    order by sum(oit.quantity) desc
+  fetch first 1 rows only; 
+
+Another Way using analytical (rank function)
+
+SELECT *
+FROM (
+    SELECT 
+        p.category,
+        SUM(oit.quantity) AS total_quantity_sold,
+        RANK() OVER (ORDER BY SUM(oit.quantity) DESC) AS rank
+    FROM 
+        "DEMO_PRODUCTS" p
+    JOIN 
+        "DEMO_ORDER_ITEMS" oit 
+        ON p.product_id = oit.product_id
+    GROUP BY 
+        p.category
+)
+WHERE rank = 1;
+
+
+-- 9. Which product category took the second position in terms of quantity sold?
+
+SELECT *
+FROM (
+    SELECT 
+        p.category,
+        SUM(oit.quantity) AS total_quantity_sold,
+        RANK() OVER (ORDER BY SUM(oit.quantity) DESC) AS rank
+    FROM 
+        "DEMO_PRODUCTS" p
+    JOIN 
+        "DEMO_ORDER_ITEMS" oit 
+        ON p.product_id = oit.product_id
+    GROUP BY 
+        p.category
+)
+WHERE rank = 2;
+
+
+
+--10. Write a query to help rollup total quantity on customer and product (name).
+select c.cust_last_name, p.product_name, sum(oit.quantity)
+  from demo_customers c
+  join demo_orders o on c.customer_id = o.customer_id
+  join demo_order_items oit on o.order_id = oit.order_id
+  join demo_products p on oit.product_id = p.product_id
+  group by rollup (c.cust_last_name, p.product_name);
